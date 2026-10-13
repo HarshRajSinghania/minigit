@@ -1,1 +1,50 @@
-"""minigit branch: list and create branches."""\n\nfrom minigit.errors import MinigitError\nfrom minigit.refs import current_branch, iter_refs, read_ref, resolve, update_ref\n\nNAME = \"branch\"\nHELP = \"List or create branches\"\n\n\ndef configure(parser):\n    parser.add_argument(\"name\", nargs=\"?\", help=\"name of the branch to create\")\n    parser.add_argument(\"start_point\", nargs=\"?\", help=\"commit to start the branch at (default: HEAD)\")\n\n\ndef _is_valid_name(name: str) -> bool:\n    if not name or \" \" in name or \"..\" in name or name.startswith(\"-\") or name.endswith(\"/\") or name.endswith(\".lock\"):\n        return False\n    return True\n\n\ndef run(args, repo):\n    if args.name is None:\n        # List branches\n        branches = iter_refs(repo, \"refs/heads\")\n        if not branches:\n            return 0\n        current = current_branch(repo)\n        for name in sorted(branches):\n            prefix = \"* \" if name == current else \"  \"\n            print(f\"{prefix}{name}\")\n        return 0\n\n    # Create branch\n    name = args.name\n    if not _is_valid_name(name):\n        raise MinigitError(f\"invalid branch name: {name}\")\n\n    if read_ref(repo, f\"refs/heads/{name}\") is not None:\n        raise MinigitError(f\"a branch named '{name}' already exists\")\n\n    start = args.start_point or \"HEAD\"\n    try:\n        sha = resolve(repo, start)\n    except MinigitError as e:\n        if \"does not point to a commit yet\" in str(e) or \"unknown revision\" in str(e):\n            raise MinigitError(\"no commits yet\") from e\n        raise\n\n    update_ref(repo, f\"refs/heads/{name}\", sha)\n    return 0\n
+"""minigit branch: list and create branches."""
+
+from minigit.errors import MinigitError
+from minigit.refs import current_branch, iter_refs, read_ref, resolve, update_ref
+
+NAME = "branch"
+HELP = "List or create branches"
+
+
+def configure(parser):
+    parser.add_argument("name", nargs="?", help="name of the branch to create")
+    parser.add_argument("start_point", nargs="?", help="commit to start the branch at (default: HEAD)")
+
+
+def _is_valid_name(name: str) -> bool:
+    if not name or " " in name or ".." in name or name.startswith("-") or name.endswith("/") or name.endswith(".lock"):
+        return False
+    return True
+
+
+def run(args, repo):
+    if args.name is None:
+        # List branches
+        branches = iter_refs(repo, "refs/heads")
+        if not branches:
+            return 0
+        current = current_branch(repo)
+        for name in sorted(branches):
+            prefix = "* " if name == current else "  "
+            print(f"{prefix}{name}")
+        return 0
+
+    # Create branch
+    name = args.name
+    if not _is_valid_name(name):
+        raise MinigitError(f"invalid branch name: {name}")
+
+    if read_ref(repo, f"refs/heads/{name}") is not None:
+        raise MinigitError(f"a branch named '{name}' already exists")
+
+    start = args.start_point or "HEAD"
+    try:
+        sha = resolve(repo, start)
+    except MinigitError as e:
+        if "does not point to a commit yet" in str(e) or "unknown revision" in str(e):
+            raise MinigitError("no commits yet") from e
+        raise
+
+    update_ref(repo, f"refs/heads/{name}", sha)
+    return 0

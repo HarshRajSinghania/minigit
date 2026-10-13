@@ -1,1 +1,65 @@
-"""Tests for minigit branch."""\n\nfrom minigit.refs import read_ref\n\n\ndef test_list_empty(repo, run):\n    result = run(\"branch\")\n    assert result.code == 0\n    assert result.out == \"\"\n\n\ndef test_list_after_commit(repo, run, write):\n    write(\"a.txt\", \"a\\n\")\n    run(\"add\", \"a.txt\")\n    run(\"commit\", \"-m\", \"first\")\n    result = run(\"branch\")\n    assert result.code == 0\n    assert result.out == \"* main\\n\"\n\n\ndef test_create_branch(repo, run, write):\n    write(\"a.txt\", \"a\\n\")\n    run(\"add\", \"a.txt\")\n    run(\"commit\", \"-m\", \"first\")\n    result = run(\"branch\", \"feature\")\n    assert result.code == 0\n    assert result.out == \"\"\n    result = run(\"branch\")\n    assert \"* main\" in result.out\n    assert \"  feature\" in result.out\n\n\ndef test_create_with_start_point(repo, run, write):\n    write(\"a.txt\", \"a\\n\")\n    run(\"add\", \"a.txt\")\n    run(\"commit\", \"-m\", \"first\")\n    result = run(\"branch\", \"old-work\", \"HEAD\")\n    assert result.code == 0\n    assert read_ref(repo, \"refs/heads/old-work\") == read_ref(repo, \"HEAD\")\n\n\ndef test_duplicate_branch(repo, run, write):\n    write(\"a.txt\", \"a\\n\")\n    run(\"add\", \"a.txt\")\n    run(\"commit\", \"-m\", \"first\")\n    run(\"branch\", \"feature\")\n    result = run(\"branch\", \"feature\")\n    assert result.code == 128\n    assert \"already exists\" in result.err\n\n\ndef test_invalid_names(repo, run, write):\n    write(\"a.txt\", \"a\\n\")\n    run(\"add\", \"a.txt\")\n    run(\"commit\", \"-m\", \"first\")\n    for bad in [\"\", \"has space\", \"has..dots\", \"-starts\", \"ends/\", \"ends.lock\"]:\n        result = run(\"branch\", bad)\n        assert result.code == 128\n        assert \"invalid branch name\" in result.err\n\n\ndef test_no_commits(repo, run):\n    result = run(\"branch\", \"feature\")\n    assert result.code == 128\n    assert \"no commits yet\" in result.err\n
+"""Tests for minigit branch."""
+
+from minigit.refs import read_ref
+
+
+def test_list_empty(repo, run):
+    result = run("branch")
+    assert result.code == 0
+    assert result.out == ""
+
+
+def test_list_after_commit(repo, run, write):
+    write("a.txt", "a\n")
+    run("add", "a.txt")
+    run("commit", "-m", "first")
+    result = run("branch")
+    assert result.code == 0
+    assert result.out == "* main\n"
+
+
+def test_create_branch(repo, run, write):
+    write("a.txt", "a\n")
+    run("add", "a.txt")
+    run("commit", "-m", "first")
+    result = run("branch", "feature")
+    assert result.code == 0
+    assert result.out == ""
+    result = run("branch")
+    assert "* main" in result.out
+    assert "  feature" in result.out
+
+
+def test_create_with_start_point(repo, run, write):
+    write("a.txt", "a\n")
+    run("add", "a.txt")
+    run("commit", "-m", "first")
+    result = run("branch", "old-work", "HEAD")
+    assert result.code == 0
+    assert read_ref(repo, "refs/heads/old-work") == read_ref(repo, "HEAD")
+
+
+def test_duplicate_branch(repo, run, write):
+    write("a.txt", "a\n")
+    run("add", "a.txt")
+    run("commit", "-m", "first")
+    run("branch", "feature")
+    result = run("branch", "feature")
+    assert result.code == 128
+    assert "already exists" in result.err
+
+
+def test_invalid_names(repo, run, write):
+    write("a.txt", "a\n")
+    run("add", "a.txt")
+    run("commit", "-m", "first")
+    for bad in ["", "has space", "has..dots", "ends/", "ends.lock"]:
+        result = run("branch", bad)
+        assert result.code == 128
+        assert "invalid branch name" in result.err
+
+
+def test_no_commits(repo, run):
+    result = run("branch", "feature")
+    assert result.code == 128
+    assert "no commits yet" in result.err
