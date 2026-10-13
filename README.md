@@ -49,20 +49,26 @@ minigit cat-file -p HEAD           # look inside the commit you just made
 
 | Command | Status | |
 |---|---|---|
-| `init` | ✅ Done | Create a repository |
-| `hash-object [-w]` | ✅ Done | Hash a file, optionally store it |
-| `cat-file -t/-s/-p` | ✅ Done | Look inside any object |
-| `add <paths>` | ✅ Done | Stage files and directories |
-| `commit -m` | ✅ Done | Record a snapshot |
-| `log`, `status`, `branch`, `checkout`, `diff`, `tag`, `rm`, `reset`, `merge`, … | 🚧 [Open issues](../../issues) | **This is where you come in** |
+| `init` | â
+ Done | Create a repository |
+| `hash-object [-w]` | â
+ Done | Hash a file, optionally store it |
+| `cat-file -t/-s/-p` | â
+ Done | Look inside any object |
+| `add <paths>` | â
+ Done | Stage files and directories |
+| `commit -m` | â
+ Done | Record a snapshot |
+| `branch` | ✅ Done | List and create branches |
+| `log`, `status`, `checkout`, `diff`, `tag`, `rm`, `reset`, `merge`, … | 🚧 [Open issues](../../issues) | **This is where you come in** |
 
 ## How Git works, in about a minute
 
 Git is a **key-value store**. The key is the SHA-1 hash of the value, and there are only three kinds of value you need to know:
 
 ```
-commit fb23685 ──► tree afbdd27 ──┬─► blob ce01362  "hello\n"         (hello.txt)
-  author Ada                      └─► tree 5f6ed9b ──► blob b917a72    (src/app.py)
+commit fb23685 âââº tree afbdd27 âââ¬ââº blob ce01362  "hello\n"         (hello.txt)
+  author Ada                      âââº tree 5f6ed9b âââº blob b917a72    (src/app.py)
   parent (none)
   "First commit"
 ```
@@ -87,7 +93,7 @@ We'd love your help, especially if this is your first open-source contribution.
 ```
 src/minigit/
     cli.py          argument parsing; finds commands automatically
-    commands/       one file per command  ← most contributions go here
+    commands/       one file per command  â most contributions go here
     objects.py      blobs, trees, commits: reading, writing, hashing
     index.py        the staging area
     refs.py         branches, tags, HEAD, and resolving names to SHAs
